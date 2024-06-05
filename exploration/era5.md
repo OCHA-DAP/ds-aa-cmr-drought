@@ -1,7 +1,7 @@
 ---
 jupyter:
   jupytext:
-    formats: ipynb,md
+    formats: md,ipynb
     text_representation:
       extension: .md
       format_name: markdown
@@ -83,22 +83,61 @@ df
 ```
 
 ```python
+dff = df[df["year"] >= 1999]
+
 rp = 5
-thresh = df["precip"].quantile(1 / rp)
+thresh = dff["precip"].quantile(1 / rp)
 
 fig, ax = plt.subplots(dpi=300)
-df.plot(x="year", y="precip", ax=ax, legend=False, color="dodgerblue")
+dff.plot(x="year", y="precip", ax=ax, legend=False, color="dodgerblue")
 
 ax.axhline(y=thresh, color="grey", linestyle="--", alpha=0.5)
 ax.annotate(
     f" seuil 1-an-sur-{rp}\n = {thresh:.0f} mm",
-    xy=(2025, thresh),
+    xy=(2024, thresh),
     color="grey",
     ha="left",
     va="center",
 )
 
-for year, row in df.set_index("year").iterrows():
+for year, row in dff.set_index("year").iterrows():
+    tp = row["precip"]
+    if tp <= thresh:
+        ax.annotate(
+            year,
+            xy=(year, tp),
+            color="crimson",
+            ha="center",
+            va="top",
+        )
+
+# ax.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1, decimals=0))
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.set_xlabel("Année")
+ax.set_title("Précipitations ERA5 juillet")
+ax.set_ylabel("Précipitations mensuelles prévues,\nmoyenne sur région (mm)")
+```
+
+```python
+dff = df[df["year"] >= 1999]
+
+rp = 9
+thresh = dff["precip"].quantile(1 / rp)
+
+fig, ax = plt.subplots(dpi=300)
+dff.plot(x="year", y="precip", ax=ax, legend=False, color="dodgerblue")
+
+ax.axhline(y=thresh, color="grey", linestyle="--", alpha=0.5)
+ax.annotate(
+    f" seuil 1-an-sur-{rp}\n = {thresh:.0f} mm",
+    xy=(2024, thresh),
+    color="grey",
+    ha="left",
+    va="center",
+)
+
+for year, row in dff.set_index("year").iterrows():
     tp = row["precip"]
     if tp <= thresh:
         ax.annotate(

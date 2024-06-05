@@ -128,10 +128,10 @@ df_save
 ```
 
 ```python
-for date_lt_str, month_str in zip(DATE_LT_STRS, ["avril", "mai"]):
-    dff = df[df["date_lt_str"] == date_lt_str]
+rp = 5
 
-    rp = 5
+for date_lt_str, month_str in zip(DATE_LT_STRS, ["avril", "mai"]):
+    dff = df[(df["date_lt_str"] == date_lt_str) & (df["year"] >= 1999)]
     thresh = dff["precip"].quantile(1 / rp)
 
     fig, ax = plt.subplots(dpi=300)
@@ -140,7 +140,7 @@ for date_lt_str, month_str in zip(DATE_LT_STRS, ["avril", "mai"]):
     ax.axhline(y=thresh, color="grey", linestyle="--", alpha=0.5)
     ax.annotate(
         f" seuil 1-an-sur-{rp}\n = {thresh:.0f} mm",
-        xy=(2026, thresh),
+        xy=(2025, thresh),
         color="grey",
         ha="left",
         va="center",
@@ -165,4 +165,46 @@ for date_lt_str, month_str in zip(DATE_LT_STRS, ["avril", "mai"]):
     ax.set_ylabel(
         "Précipitations mensuelles prévues,\nmoyenne sur région (mm)"
     )
+    break
+```
+
+```python
+rp = 9
+
+for date_lt_str, month_str in zip(DATE_LT_STRS, ["avril", "mai"]):
+    dff = df[(df["date_lt_str"] == date_lt_str) & (df["year"] >= 1999)]
+    thresh = dff["precip"].quantile(1 / rp)
+
+    fig, ax = plt.subplots(dpi=300)
+    dff.plot(x="year", y="precip", ax=ax, legend=False, color="dodgerblue")
+
+    ax.axhline(y=thresh, color="grey", linestyle="--", alpha=0.5)
+    ax.annotate(
+        f" seuil 1-an-sur-{rp}\n = {thresh:.0f} mm",
+        xy=(2025, thresh),
+        color="grey",
+        ha="left",
+        va="center",
+    )
+
+    for year, row in dff.set_index("year").iterrows():
+        tp = row["precip"]
+        if tp <= thresh:
+            ax.annotate(
+                year,
+                xy=(year, tp),
+                color="crimson",
+                ha="center",
+                va="top",
+            )
+
+    # ax.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1, decimals=0))
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.set_xlabel("Année")
+    ax.set_title(f"Prévision ECMWF pour jui-aoû-sep, publiée {month_str}")
+    ax.set_ylabel(
+        "Précipitations mensuelles prévues,\nmoyenne sur région (mm)"
+    )
+    break
 ```

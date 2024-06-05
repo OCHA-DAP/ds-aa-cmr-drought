@@ -36,15 +36,11 @@ EOS_DEKAD = 24
 ```
 
 ```python
-biomasse.download_biomasse(admin_level="ADM1")
+# biomasse.download_biomasse(admin_level="ADM1")
 ```
 
 ```python
 df = biomasse.load_dmp(admin_level="ADM1")
-```
-
-```python
-[x for x in df.columns if "DMP_2023" in x]
 ```
 
 ```python
@@ -81,7 +77,7 @@ df_anom
 ```
 
 ```python
-rp = 5
+rp = 7
 thresh = df_anom["anom"].quantile(1 / rp)
 
 fig, ax = plt.subplots(dpi=300)
@@ -113,4 +109,43 @@ ax.spines["right"].set_visible(False)
 ax.set_xlabel("Année")
 ax.set_ylabel("Anomalie de biomasse, évalué fin août")
 ax.set_title("Anomalie de biomasse, fin août, Extrême-Nord")
+```
+
+```python
+rp = 9
+thresh = df_anom["anom"].quantile(1 / rp)
+
+fig, ax = plt.subplots(dpi=300)
+df_anom.plot(x="year", y="anom", ax=ax, legend=False, color="dodgerblue")
+
+ax.axhline(y=thresh, color="grey", linestyle="--", alpha=0.5)
+ax.annotate(
+    f" seuil 1-an-sur-{rp}\n = {thresh:.1%}",
+    xy=(2024, thresh),
+    color="grey",
+    ha="left",
+    va="center",
+)
+
+for year, row in df_anom.set_index("year").iterrows():
+    tp = row["anom"]
+    if tp <= thresh:
+        ax.annotate(
+            year,
+            xy=(year, tp),
+            color="crimson",
+            ha="center",
+            va="top",
+        )
+
+ax.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1, decimals=0))
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.set_xlabel("Année")
+ax.set_ylabel("Anomalie de biomasse, évalué fin août")
+ax.set_title("Anomalie de biomasse, fin août, Extrême-Nord")
+```
+
+```python
+
 ```
