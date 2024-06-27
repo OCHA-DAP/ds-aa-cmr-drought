@@ -31,6 +31,8 @@ from src.utils import upsample_dataarray
 ```
 
 ```python
+# for reading GRIBs that have been downloaded for specific
+# issue month - leadtime combinations
 DATE_LT_STRS = ["m4-l456", "m5-l345"]
 ```
 
@@ -44,6 +46,7 @@ adm.plot()
 ```
 
 ```python
+# combine the two GRIBs
 dss = []
 for date_lt_str in DATE_LT_STRS:
     ds_in = ecmwf.load_ecmwf_specific_cmr(date_lt_str)
@@ -54,13 +57,16 @@ ds = xr.concat(dss, dim="date_lt_str")
 ```
 
 ```python
+# take ensemble mean
 da = ds["tprate"].mean(dim=["number", "step"])
 da = da.groupby("time.year").first()
 da *= 3600 * 24 * 1000 * 30
+# upsample for more precise clipping by AOI
 da_up = upsample_dataarray(da, resolution=0.01)
 ```
 
 ```python
+# clip with AOI
 da_up = da_up.rio.write_crs(4326)
 da_clip = da_up.rio.clip(adm.geometry, all_touched=True)
 ```
@@ -70,6 +76,7 @@ da_clip
 ```
 
 ```python
+# plot raster
 fig, ax = plt.subplots(dpi=300)
 adm.boundary.plot(ax=ax, color="white")
 da_clip.isel(date_lt_str=1, year=0).plot(ax=ax)
@@ -78,6 +85,7 @@ ax.set_title("Exemple de prévision ECMWF sur Extrême-Nord")
 ```
 
 ```python
+# calculate mean over AOI
 da_mean = da_clip.mean(dim=["latitude", "longitude"])
 ```
 
@@ -86,6 +94,7 @@ df = da_mean.to_dataframe()["tprate"].reset_index()
 df = df.rename(columns={"tprate": "precip"})
 
 
+# determine 3- and 5-year return period thresholds, and which years would have triggered
 def calc_rp(group):
     group["rank"] = group["precip"].rank().astype(int)
     group["rp"] = len(group) / group["rank"]
@@ -106,6 +115,7 @@ df
 ```
 
 ```python
+# reformat df to make nice CSV to share
 dfs = []
 
 for date_lt_str, month_str in zip(DATE_LT_STRS, ["apr", "may"]):
@@ -128,6 +138,7 @@ df_save
 ```
 
 ```python
+# plot timeseries of forecast, highlighting years below RP threshold
 rp = 5
 
 for date_lt_str, month_str in zip(DATE_LT_STRS, ["avril", "mai"]):
@@ -169,6 +180,7 @@ for date_lt_str, month_str in zip(DATE_LT_STRS, ["avril", "mai"]):
 ```
 
 ```python
+# plot timeseries of forecast, highlighting years below RP threshold
 rp = 9
 
 for date_lt_str, month_str in zip(DATE_LT_STRS, ["avril", "mai"]):
